@@ -8,194 +8,151 @@ nachbauen                                                                       
 ****WARNING: Exceeding internal data memory capacity: score_board <- 128
   0090                   7     input DATA P1
 ****WARNING: Exceeding internal data memory capacity: input <- 144
-  00A0                   8     output_1 DATA P2
-****WARNING: Exceeding internal data memory capacity: output_1 <- 160
-  00B0                   9     output_2 DATA P3
-****WARNING: Exceeding internal data memory capacity: output_2 <- 176
-  000F                  10     maske1 equ 00001111b
-  00F0                  11     maske2 equ 11110000b
-  0001                  12     maskelastbit equ 00000001b
-  0002                  13     maskeprelastbit equ 00000010b
-  0004                  14     maskepreprelastbit equ 00000100b
-  0008                  15     maskeprepreprelastbit equ 00001000b
-                        16
-                        17     ;INIT ENDE
-                        18
+  00A0                   8     output_x DATA P2
+****WARNING: Exceeding internal data memory capacity: output_x <- 160
+                         9
+                        10
+                        11     ;INIT ENDE
+                        12
+                        13
+0000 7F03               14     mov R7, #03h
+0002 1200B2             15     lcall three_seg
+0005 12008A             16     lcall animation_anfang
+                        17
+0008 75A0FF             18     mov output_x, #0FFh
                         19
-0000 758010             20                     mov score_board,#010h
-0003 1200E2             21                     lcall animation_anfang
-                        22     start:                                                                                          ;STAR
-0006 12009F             23                     lcall wait
-0009 E580               24                     mov A,score_board
-000B B40003             25                     cjne A,#00h,warte_pins
-000E 0200FE             26                     jmp game_over
-                        27     warte_pins:                                                                                     ;ZUFA
-0011 1D                 28                     dec R5
-0012 0A                 29                     inc R2
-0013 E590               30                     mov A,input
-0015 B400F9             31                     cjne A,#00h,warte_pins
-0018 8AA0               32                     mov Output_1,R2
-001A 8DB0               33                     mov Output_2,R5
-001C 12009F             34                     call wait
-001F A8A0               35                     mov R0,Output_1                                                 ;MUSTER SPEICHERN IN
-0021 A9B0               36                     mov R1,Output_2
-0023 75A000             37                     mov Output_1,#00h
-0026 75B000             38                     mov Output_2,#00h
-                        39
-                        40     eingabe:                                                        ;EINGABE DES MUSTERS
-                        41
-                        42     zeile_1:
-0029 E590               43             mov A,input
-002B 540F               44             anl A,#maske1
-002D F5A0               45             mov Output_1,A
-002F 3094F7             46             jnb P1.4,zeile_1                                                ;Zeile 1 bestätigen
-                        47     zeile_2:
-0032 E590               48             mov A,input
-0034 23                 49             rl A
-0035 23                 50             rl A
-0036 23                 51             rl A
-0037 23                 52             rl A
-0038 54F0               53             anl A,#maske2
-003A 85B0F0             54             mov B,Output_2
-003D 53F00F             55             anl B,#maske1
-0040 45F0               56             orl A,B
-0042 F5A0               57             mov Output_1,A
-0044 3095EB             58             jnb P1.5,zeile_2                                                ;Zeile 2 bestätigen
-                        59     zeile_3:
-0047 E590               60             mov A,input
-0049 540F               61             anl A,#maske1
-004B F5B0               62             mov Output_2,A
-004D 3096F7             63             jnb P1.6,zeile_3                                                ;Zeile 3 bestätigen
-                        64     zeile_4:
-0050 E590               65             mov A,input
-0052 23                 66             rl A
-0053 23                 67             rl A
-0054 23                 68             rl A
-0055 23                 69             rl A
-0056 54F0               70             anl A,#maske2
-0058 85B0F0             71             mov B,Output_2
-005B 53F00F             72             anl B,#maske1
-005E 45F0               73             orl A,B
-0060 F5B0               74             mov Output_2,A
-0062 3097EB             75                       jnb P1.7,zeile_4                                              ;Zeile 4 bestätigen
+                        20
+                        21     start:
+000B 120053             22             lcall wait
+000E E580               23             mov A, score_board
+0010 B40003             24             cjne A, #00h, warte_pins
+0013 0200C7             25             jmp game_over
+                        26     warte_pins:
+0016 1A                 27             dec R2
+0017 0D                 28             inc R5
+0018 EA                 29             mov A, R2
+0019 2D                 30             add A, R5
+001A FA                 31             mov R2, A
+001B E590               32             mov A, input
+001D B400F6             33             cjne A, #00h, warte_pins
+0020 7480               34             mov A, #010000000b
+0022 4A                 35             orl A, R2
+0023 FA                 36             mov R2, A
+                        37
+0024 8AA0               38             mov output_x, R2
+0026 120053             39             lcall wait
+0029 A8A0               40             mov R0, output_x
+002B 75A0FF             41             mov output_x, #0FFh
+                        42     eingabe: ;Eingabe des Musterrs
+                        43     zeile_1:
+002E E590               44             mov A, input
+0030 F5A0               45             mov output_x, A
+0032 3097F9             46             jnb P1.7, zeile_1
+                        47     abfrage:
+0035 E8                 48             mov A, R0
+0036 B5A00D             49             cjne A, output_x, falsch
+                        50
+                        51     richtig:
+0039 EF                 52             mov A, R7
+003A 04                 53             inc A
+003B FF                 54             mov R7, A
+003C 12009D             55             lcall select_7seg
+003F 80CA               56             jmp start
+                        57
+                        58     normal_hoch:
+0041 8C80               59             mov score_board, R4
+0043 02005C             60             jmp animation_richtig
+                        61
+                        62     falsch:
+0046 EF                 63             mov A, R7
+0047 14                 64             dec A
+0048 FF                 65             mov R7, A
+0049 12009D             66             lcall select_7seg
+004C 80BD               67             jmp start
+                        68
+                        69     normal_runter:
+004E 8C80               70             mov score_board, R4
+0050 020070             71             jmp animation_falsch
+                        72     wait:
+0053 7E02               73             mov R6, #02h
+                        74     w1_s1:
+0055 7F01               75             mov R7, #001h
                         76
-                        77
-                        78     abfrage:
-0065 E8                 79                     mov A,R0
-0066 ABA0               80                     mov R3, output_1
-0068 ACB0               81                     mov R4, output_2
-006A B5A01B             82                     cjne A,Output_1,falsch
-006D E9                 83                     mov A,R1
-006E B5B017             84                     cjne A,Output_2,falsch
-                        85
-                        86     richtig:
-0071 E580               87                     mov A,score_board
-0073 04                 88                     inc A
-0074 FB                 89                     mov R3,A
-0075 FC                 90                     mov R4,A
-0076 540F               91                     anl A,#maske1
-0078 B40A08             92                     cjne A,#00001010b,normal_hoch
-007B 7410               93                     mov A,#00010000b                                                        ;ÜBERGANG VON
-007D FC                 94                     mov R4,A
-007E EB                 95                     mov A,R3
-007F 54F0               96                     anl A,#maske2
-0081 2C                 97                     add A,R4
-0082 FC                 98                     mov R4,A
-                        99
-                       100     normal_hoch:
-0083 8C80              101                     mov score_board,R4
-0085 0200A8            102                     jmp animation_richtig
-                       103
-                       104     falsch:                                                                                         ;-1 P
-0088 E580              105                     mov A,score_board
-008A 14                106                     dec A
-008B FB                107                     mov R3,A
-008C FC                108                     mov R4,A
-008D 540F              109                     anl A,#maske1
-008F B40F08            110                     cjne A,#00001111b,normal_runter
-0092 7409              111                     mov A,#00001001b                                                        ;ÜBERGANG VON
-0094 FC                112                     mov R4,A
-0095 EB                113                     mov A,R3
-0096 54F0              114                     anl A,#maske2
-0098 2C                115                     add A,R4
-0099 FC                116                     mov R4,A
-                       117
-                       118     normal_runter:
-009A 8C80              119                     mov score_board,R4
-009C 0200C5            120                     jmp animation_falsch
-                       121
-                       122
-                       123
-                       124
-                       125     wait:
-009F 7E02              126                     mov R6,#02h
-                       127
-                       128     w1_s1:
-00A1 7F01              129                     mov R7,#01h
-                       130
-                       131     w1_s2:
-00A3 DFFE              132                     djnz R7,w1_s2
-00A5 DEFA              133                     djnz R6,w1_s1
-00A7 22                134                     ret
-                       135
-                       136
-                       137
-                       138
-                       139     animation_richtig:                                                              ;ANIMATION ZWISCHEN R
-00A8 75A0F6            140                     mov Output_1,#11110110b
-00AB 75B06F            141                     mov Output_2,#01101111b
-00AE 12009F            142                     lcall wait
-00B1 75A0FF            143                     mov Output_1,#0FFh
-00B4 75B0FF            144                     mov Output_2,#0FFh
-00B7 12009F            145                     lcall wait
-00BA 75A000            146                     mov Output_1,#00h
-00BD 75B000            147                     mov Output_2,#00h
-00C0 12009F            148                     lcall wait
-00C3 0106              149                     jmp start
-                       150
-                       151     animation_falsch:                                                                       ;ANIMATION ZW
-00C5 75A0F0            152                     mov Output_1,#11110000b
-00C8 75B00F            153                     mov Output_2,#00001111b
-00CB 12009F            154                     lcall wait
-00CE 75A0FF            155                     mov Output_1,#0FFh
-00D1 75B0FF            156                     mov Output_2,#0FFh
-00D4 12009F            157                     lcall wait
-00D7 75A000            158                     mov Output_1,#00h
-00DA 75B000            159                     mov Output_2,#00h
-00DD 12009F            160                     lcall wait
-00E0 0106              161                     jmp start
-                       162
-                       163
-                       164     animation_anfang:                                                                       ;Animation am
-00E2 75A0A5            165             mov Output_1,#10100101b
-00E5 75B0A5            166             mov Output_2,#10100101b
-00E8 12009F            167             lcall wait
-00EB 75A05A            168             mov Output_1,#01011010b
-00EE 75B05A            169             mov Output_2,#01011010b
-00F1 12009F            170             lcall wait
-00F4 75A000            171             mov Output_1,#00h
-00F7 75B000            172             mov Output_2,#00h
-00FA 12009F            173             lcall wait
-00FD 22                174             ret
-                       175
-                       176     game_over:                                                                                      ;GAME
-00FE 75A069            177                     mov Output_1,#01101001b
-0101 75B096            178                     mov Output_2,#10010110b
-0104 80F8              179                     jmp game_over
-                       180     end
-ASSEMBLY COMPLETE, NO ERRORS FOUND, 4 WARNINGS
+                        77     w1_s2:
+0057 DFFE               78             djnz R7, w1_s2
+0059 DEFA               79             djnz R6, w1_s1
+005B 22                 80             ret
+                        81
+                        82     animation_richtig:
+005C 75A0F6             83             mov output_x, #11110110b
+005F 120053             84             lcall wait
+0062 75A0FF             85             mov output_x, #0FFh
+0065 120053             86             lcall wait
+0068 75A000             87             mov output_x, #00h
+006B 120053             88             lcall wait
+006E 809B               89             jmp start
+                        90
+                        91     animation_falsch:
+0070 75A0FF             92             mov output_x, #0FFh
+0073 120053             93             lcall wait
+0076 75A000             94             mov output_x, #00h
+0079 120053             95             lcall wait
+007C 75A0FF             96             mov output_x, #0FFh
+007F 120053             97             lcall wait
+0082 75A000             98             mov output_x, #00h
+0085 120053             99             lcall wait
+0088 8081              100             jmp start
+                       101
+                       102     animation_anfang:
+008A 75A0AA            103             mov output_x, #10101010b
+008D 120053            104             lcall wait
+0090 75A055            105             mov output_x, #01010101b
+0093 120053            106             lcall wait
+0096 75A0AA            107             mov output_x, #10101010b
+0099 120053            108             lcall wait
+009C 22                109             ret
+                       110
+                       111     select_7seg:
+009D BF0004            112             cjne R7, #00h, one_seg
+00A0 0200C7            113             jmp game_over
+00A3 22                114             ret
+                       115
+                       116     one_seg:
+00A4 BF0104            117             cjne R7, #01h, two_seg
+00A7 758006            118             mov score_board, #00000110b
+00AA 22                119             ret
+                       120     two_seg:
+00AB BF0204            121             cjne R7, #02h, three_seg
+00AE 75805B            122             mov score_board, #01011011b
+00B1 22                123             ret
+                       124     three_seg:
+00B2 BF0304            125             cjne R7, #03h, four_seg
+00B5 75804F            126             mov score_board, #01001111b
+00B8 22                127             ret
+                       128     four_seg:
+00B9 BF0404            129             cjne R7, #04h, five_seg
+00BC 758066            130             mov score_board, #01100110b
+00BF 22                131             ret
+                       132     five_seg:
+00C0 BF0504            133             cjne R7, #05h, game_over
+00C3 75806D            134             mov score_board, #01101101b
+00C6 22                135             ret
+                       136     game_over:
+00C7 75A0FF            137             mov output_x, #0FFh
+00CA 80FB              138             jmp game_over
+                       139     end
+ASSEMBLY COMPLETE, NO ERRORS FOUND, 3 WARNINGS
 
 
 ERROR SUMMARY:
 Line 6, WARNING: Exceeding internal data memory capacity: score_board <- 128
 Line 8, WARNING: Exceeding internal data memory capacity: input <- 144
-Line 10, WARNING: Exceeding internal data memory capacity: output_1 <- 160
-Line 12, WARNING: Exceeding internal data memory capacity: output_2 <- 176
+Line 10, WARNING: Exceeding internal data memory capacity: output_x <- 160
 
 SYMBOL TABLE:
 ??MCU_8051_IDE . . . . . . . . . . .  N  NUMB  8051H  NOT USED
 ??VERSION. . . . . . . . . . . . . .  N  NUMB  0147H  NOT USED
-ABFRAGE. . . . . . . . . . . . . . .  C  ADDR  0065H  NOT USED
+ABFRAGE. . . . . . . . . . . . . . .  C  ADDR  0035H  NOT USED
 AC . . . . . . . . . . . . . . . . .  B  ADDR  00D6H  NOT USED
 ACC. . . . . . . . . . . . . . . . .  D  ADDR  00E0H  NOT USED
 ACSR . . . . . . . . . . . . . . . .  D  ADDR  0097H  NOT USED
@@ -204,12 +161,12 @@ ADCLK. . . . . . . . . . . . . . . .  D  ADDR  00F2H  NOT USED
 ADCON. . . . . . . . . . . . . . . .  D  ADDR  00F3H  NOT USED
 ADDH . . . . . . . . . . . . . . . .  D  ADDR  00F5H  NOT USED
 ADDL . . . . . . . . . . . . . . . .  D  ADDR  00F4H  NOT USED
-ANIMATION_ANFANG . . . . . . . . . .  C  ADDR  00E2H
-ANIMATION_FALSCH . . . . . . . . . .  C  ADDR  00C5H
-ANIMATION_RICHTIG. . . . . . . . . .  C  ADDR  00A8H
+ANIMATION_ANFANG . . . . . . . . . .  C  ADDR  008AH
+ANIMATION_FALSCH . . . . . . . . . .  C  ADDR  0070H
+ANIMATION_RICHTIG. . . . . . . . . .  C  ADDR  005CH
 AUXR . . . . . . . . . . . . . . . .  D  ADDR  008EH  NOT USED
 AUXR1. . . . . . . . . . . . . . . .  D  ADDR  00A2H  NOT USED
-B. . . . . . . . . . . . . . . . . .  D  ADDR  00F0H
+B. . . . . . . . . . . . . . . . . .  D  ADDR  00F0H  NOT USED
 BDRCON . . . . . . . . . . . . . . .  D  ADDR  009BH  NOT USED
 BDRCON_1 . . . . . . . . . . . . . .  D  ADDR  009CH  NOT USED
 BRL. . . . . . . . . . . . . . . . .  D  ADDR  009AH  NOT USED
@@ -259,7 +216,7 @@ DPL. . . . . . . . . . . . . . . . .  D  ADDR  0082H  NOT USED
 EA . . . . . . . . . . . . . . . . .  B  ADDR  00AFH  NOT USED
 EC . . . . . . . . . . . . . . . . .  B  ADDR  00AEH  NOT USED
 EECON. . . . . . . . . . . . . . . .  D  ADDR  0096H  NOT USED
-EINGABE. . . . . . . . . . . . . . .  C  ADDR  0029H  NOT USED
+EINGABE. . . . . . . . . . . . . . .  C  ADDR  002EH  NOT USED
 ES . . . . . . . . . . . . . . . . .  B  ADDR  00ACH  NOT USED
 ET0. . . . . . . . . . . . . . . . .  B  ADDR  00A9H  NOT USED
 ET1. . . . . . . . . . . . . . . . .  B  ADDR  00ABH  NOT USED
@@ -271,9 +228,11 @@ EXF2 . . . . . . . . . . . . . . . .  B  ADDR  00CEH  NOT USED
 EXTI0. . . . . . . . . . . . . . . .  C  ADDR  0003H  NOT USED
 EXTI1. . . . . . . . . . . . . . . .  C  ADDR  0013H  NOT USED
 F0 . . . . . . . . . . . . . . . . .  B  ADDR  00D5H  NOT USED
-FALSCH . . . . . . . . . . . . . . .  C  ADDR  0088H
+FALSCH . . . . . . . . . . . . . . .  C  ADDR  0046H
 FE . . . . . . . . . . . . . . . . .  B  ADDR  009FH  NOT USED
-GAME_OVER. . . . . . . . . . . . . .  C  ADDR  00FEH
+FIVE_SEG . . . . . . . . . . . . . .  C  ADDR  00C0H
+FOUR_SEG . . . . . . . . . . . . . .  C  ADDR  00B9H
+GAME_OVER. . . . . . . . . . . . . .  C  ADDR  00C7H
 IE . . . . . . . . . . . . . . . . .  D  ADDR  00A8H  NOT USED
 IE0. . . . . . . . . . . . . . . . .  B  ADDR  0089H  NOT USED
 IE1. . . . . . . . . . . . . . . . .  B  ADDR  008BH  NOT USED
@@ -291,17 +250,11 @@ IT1. . . . . . . . . . . . . . . . .  B  ADDR  008AH  NOT USED
 KBE. . . . . . . . . . . . . . . . .  D  ADDR  009DH  NOT USED
 KBF. . . . . . . . . . . . . . . . .  D  ADDR  009EH  NOT USED
 KBLS . . . . . . . . . . . . . . . .  D  ADDR  009CH  NOT USED
-MASKE1 . . . . . . . . . . . . . . .  N  NUMB  000FH
-MASKE2 . . . . . . . . . . . . . . .  N  NUMB  00F0H
-MASKELASTBIT . . . . . . . . . . . .  N  NUMB  0001H  NOT USED
-MASKEPRELASTBIT. . . . . . . . . . .  N  NUMB  0002H  NOT USED
-MASKEPREPRELASTBIT . . . . . . . . .  N  NUMB  0004H  NOT USED
-MASKEPREPREPRELASTBIT. . . . . . . .  N  NUMB  0008H  NOT USED
-NORMAL_HOCH. . . . . . . . . . . . .  C  ADDR  0083H
-NORMAL_RUNTER. . . . . . . . . . . .  C  ADDR  009AH
+NORMAL_HOCH. . . . . . . . . . . . .  C  ADDR  0041H  NOT USED
+NORMAL_RUNTER. . . . . . . . . . . .  C  ADDR  004EH  NOT USED
+ONE_SEG. . . . . . . . . . . . . . .  C  ADDR  00A4H
 OSCCON . . . . . . . . . . . . . . .  D  ADDR  0086H  NOT USED
-OUTPUT_1 . . . . . . . . . . . . . .  D  ADDR  00A0H
-OUTPUT_2 . . . . . . . . . . . . . .  D  ADDR  00B0H
+OUTPUT_X . . . . . . . . . . . . . .  D  ADDR  00A0H
 OV . . . . . . . . . . . . . . . . .  B  ADDR  00D2H  NOT USED
 P. . . . . . . . . . . . . . . . . .  B  ADDR  00D0H  NOT USED
 P0 . . . . . . . . . . . . . . . . .  D  ADDR  0080H  NOT USED
@@ -340,7 +293,7 @@ RD . . . . . . . . . . . . . . . . .  B  ADDR  00B7H  NOT USED
 REN. . . . . . . . . . . . . . . . .  B  ADDR  009CH  NOT USED
 RESET. . . . . . . . . . . . . . . .  C  ADDR  0000H  NOT USED
 RI . . . . . . . . . . . . . . . . .  B  ADDR  0098H  NOT USED
-RICHTIG. . . . . . . . . . . . . . .  C  ADDR  0071H  NOT USED
+RICHTIG. . . . . . . . . . . . . . .  C  ADDR  0039H  NOT USED
 RS0. . . . . . . . . . . . . . . . .  B  ADDR  00D3H  NOT USED
 RS1. . . . . . . . . . . . . . . . .  B  ADDR  00D4H  NOT USED
 RXD. . . . . . . . . . . . . . . . .  B  ADDR  00B0H  NOT USED
@@ -353,6 +306,7 @@ SADEN_1. . . . . . . . . . . . . . .  D  ADDR  00BAH  NOT USED
 SBUF . . . . . . . . . . . . . . . .  D  ADDR  0099H  NOT USED
 SCON . . . . . . . . . . . . . . . .  D  ADDR  0098H  NOT USED
 SCORE_BOARD. . . . . . . . . . . . .  D  ADDR  0080H
+SELECT_7SEG. . . . . . . . . . . . .  C  ADDR  009DH
 SINT . . . . . . . . . . . . . . . .  C  ADDR  0023H  NOT USED
 SM0. . . . . . . . . . . . . . . . .  B  ADDR  009FH  NOT USED
 SM1. . . . . . . . . . . . . . . . .  B  ADDR  009EH  NOT USED
@@ -364,7 +318,7 @@ SPDAT. . . . . . . . . . . . . . . .  D  ADDR  00C5H  NOT USED
 SPDR . . . . . . . . . . . . . . . .  D  ADDR  0086H  NOT USED
 SPSR . . . . . . . . . . . . . . . .  D  ADDR  00AAH  NOT USED
 SPSTA. . . . . . . . . . . . . . . .  D  ADDR  00C4H  NOT USED
-START. . . . . . . . . . . . . . . .  C  ADDR  0006H
+START. . . . . . . . . . . . . . . .  C  ADDR  000BH
 T0 . . . . . . . . . . . . . . . . .  B  ADDR  00B4H  NOT USED
 T1 . . . . . . . . . . . . . . . . .  B  ADDR  00B5H  NOT USED
 T2CON. . . . . . . . . . . . . . . .  D  ADDR  00C8H  NOT USED
@@ -378,6 +332,7 @@ TF2. . . . . . . . . . . . . . . . .  B  ADDR  00CFH  NOT USED
 TH0. . . . . . . . . . . . . . . . .  D  ADDR  008CH  NOT USED
 TH1. . . . . . . . . . . . . . . . .  D  ADDR  008DH  NOT USED
 TH2. . . . . . . . . . . . . . . . .  D  ADDR  00CDH  NOT USED
+THREE_SEG. . . . . . . . . . . . . .  C  ADDR  00B2H
 TI . . . . . . . . . . . . . . . . .  B  ADDR  0099H  NOT USED
 TIMER0 . . . . . . . . . . . . . . .  C  ADDR  000BH  NOT USED
 TIMER1 . . . . . . . . . . . . . . .  C  ADDR  001BH  NOT USED
@@ -389,16 +344,14 @@ TMOD . . . . . . . . . . . . . . . .  D  ADDR  0089H  NOT USED
 TR0. . . . . . . . . . . . . . . . .  B  ADDR  008CH  NOT USED
 TR1. . . . . . . . . . . . . . . . .  B  ADDR  008EH  NOT USED
 TR2. . . . . . . . . . . . . . . . .  B  ADDR  00CAH  NOT USED
+TWO_SEG. . . . . . . . . . . . . . .  C  ADDR  00ABH
 TXD. . . . . . . . . . . . . . . . .  B  ADDR  00B1H  NOT USED
-W1_S1. . . . . . . . . . . . . . . .  C  ADDR  00A1H
-W1_S2. . . . . . . . . . . . . . . .  C  ADDR  00A3H
-WAIT . . . . . . . . . . . . . . . .  C  ADDR  009FH
-WARTE_PINS . . . . . . . . . . . . .  C  ADDR  0011H
+W1_S1. . . . . . . . . . . . . . . .  C  ADDR  0055H
+W1_S2. . . . . . . . . . . . . . . .  C  ADDR  0057H
+WAIT . . . . . . . . . . . . . . . .  C  ADDR  0053H
+WARTE_PINS . . . . . . . . . . . . .  C  ADDR  0016H
 WDTCON . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
 WDTPRG . . . . . . . . . . . . . . .  D  ADDR  00A7H  NOT USED
 WDTRST . . . . . . . . . . . . . . .  D  ADDR  00A6H  NOT USED
 WR . . . . . . . . . . . . . . . . .  B  ADDR  00B6H  NOT USED
-ZEILE_1. . . . . . . . . . . . . . .  C  ADDR  0029H
-ZEILE_2. . . . . . . . . . . . . . .  C  ADDR  0032H
-ZEILE_3. . . . . . . . . . . . . . .  C  ADDR  0047H
-ZEILE_4. . . . . . . . . . . . . . .  C  ADDR  0050H
+ZEILE_1. . . . . . . . . . . . . . .  C  ADDR  002EH

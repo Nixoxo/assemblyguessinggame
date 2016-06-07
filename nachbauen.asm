@@ -35,8 +35,6 @@ warte_pins:
 	orl A, R2
 	mov R2, A
 
-	mov R2, output_x
-
 	mov output_x, R2
 	lcall wait
 	mov R0, output_x
