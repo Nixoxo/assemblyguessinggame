@@ -1,18 +1,31 @@
+; The following program is a small game in assembler. It will only run in the MCU8051 IDE due to some simulation components. The game is about a random pattern is showed for a short time period, and the user has to rebuild this pattern. The user will start with the score 3 and will +1 hen he has the pattern corect. -1 when the rebuild pattern is wrong.
+
+; We the need the following components
 ; P0 7 LED Display
 ; P1 simple keypad
-; P2 16xLeds
+; P2 column of LED Matrix P2.0 - P2.6. P2.7 is unused
+; P3 only P3.0 is used for the first row
 
-;INIT ANFANG
+;INIT Begin
 score_board DATA P0
 input DATA P1
 output_x DATA P2
+output_y DATA P3
 
+;Constanly enable 1 to A in LED matrix
+mov output_y, #01h
 
-;INIT ENDE
-
-
+;The score of the user is saved in R7
+;Starting with score R7 =3
 mov R7, #03h
+
+;INIT END
+
+
+
+; Set 7seg to 3
 lcall three_seg
+; Starting begin simulation
 lcall animation_anfang
 
 mov output_x, #0FFh
@@ -20,20 +33,18 @@ mov output_x, #0FFh
 
 start:
 	lcall wait
-	mov A, score_board
-	cjne A, #00h, warte_pins
+	mov A, R7
+	cjne A, #00h, random
 	jmp game_over
-warte_pins:
+random:
 	dec R2
 	inc R5
 	mov A, R2
 	add A, R5
 	mov R2, A
 	mov A, input
-	cjne A, #00h, warte_pins
-	mov A, #010000000b
-	orl A, R2
-	mov R2, A
+	cjne A, #00h, random
+	mov A, R2
 
 	mov output_x, R2
 	lcall wait
@@ -70,13 +81,13 @@ normal_runter:
 	mov score_board, R4
 	jmp animation_falsch
 wait:
-	mov R6, #02h
+	mov R5, #02h
 w1_s1:
-	mov R7, #001h
+	mov R6, #001h
 
 w1_s2:
-	djnz R7, w1_s2
-	djnz R6, w1_s1	
+	djnz R6, w1_s2
+	djnz R5, w1_s1	
 	ret 	
 
 animation_richtig:
@@ -110,6 +121,7 @@ animation_anfang:
 
 select_7seg:
 	cjne R7, #00h, one_seg
+	mov score_board, #00111111b  
 	jmp game_over
 	ret
 
@@ -134,6 +146,5 @@ five_seg:
 	mov score_board, #01101101b
 	ret
 game_over:
-	mov output_x, #0FFh
 	jmp game_over
 end
