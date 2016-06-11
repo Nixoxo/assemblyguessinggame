@@ -14,34 +14,60 @@ output_y DATA P3
 
 ;Constanly enable 1 to A in LED matrix
 mov output_y, #01h
+jmp init
 
-;The score of the user is saved in R7
-;Starting with score R7 =3
-mov R7, #03h
 
 ;INIT END
 
+win:
+	mov output_x, #11000000b
+	lcall wait
+	mov output_x, #00110000b
+	lcall wait
+	mov output_x, #00001100b
+	lcall wait
+	mov output_x, #00000011b
+	lcall wait
+	mov output_x, #11000000b
+	lcall wait
+	mov output_x, #00110000b
+	lcall wait
+	mov output_x, #00001100b
+	lcall wait
+	mov output_x, #00000011b
+	lcall wait
+	jmp init
 
 
-; Set 7seg to 3
-lcall three_seg
-; Starting begin simulation
-lcall animation_anfang
-
-mov output_x, #0FFh
-
+init:
+	;The score of the user is saved in R7
+	;Starting with score R7 =3
+	mov R7, #03h
+	;Set 7seg to 3
+	lcall three_seg
+	;Starting begin simulation
+	lcall animation_anfang
+	mov output_x, #0FFh
 
 start:
 	lcall wait
 	mov A, R7
+checkifwin:
+	jmp iswin
+checkiflost:
 	cjne A, #00h, random
 	jmp game_over
+
+iswin:
+	cjne A, #05h, checkiflost
+	jmp win
 random:
 	dec R2
 	inc R5
 	mov A, R2
 	add A, R5
 	mov R2, A
+	mov output_x, R2
 	mov A, input
 	cjne A, #00h, random
 	mov A, R2
@@ -49,6 +75,9 @@ random:
 	mov output_x, R2
 	lcall wait
 	mov R0, output_x
+	mov A, #001111111b
+	anl A, R0
+	mov R0, A
 	mov output_x, #0FFh
 eingabe: ;Eingabe des Musterrs
 zeile_1: 
@@ -146,5 +175,11 @@ five_seg:
 	mov score_board, #01101101b
 	ret
 game_over:
-	jmp game_over
+	lcall wait
+	lcall animation_anfang
+	lcall wait
+	lcall animation_anfang
+	lcall wait
+	jmp init
+	
 end
