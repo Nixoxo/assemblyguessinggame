@@ -95,20 +95,13 @@ richtig:
 	lcall select_7seg
 	jmp start
 
-normal_hoch:
-	mov score_board, R4
-	jmp animation_richtig
-
 falsch:
 	mov A, R7
 	dec A
 	mov R7, A
 	lcall select_7seg
 	jmp start
-	
-normal_runter: 
-	mov score_board, R4
-	jmp animation_falsch
+
 wait:
 	mov R5, #02h
 w1_s1:
@@ -118,26 +111,6 @@ w1_s2:
 	djnz R6, w1_s2
 	djnz R5, w1_s1	
 	ret 	
-
-animation_richtig:
-	mov output_x, #11110110b
-	lcall wait
-	mov output_x, #0FFh
-	lcall wait
-	mov output_x, #00h
-	lcall wait
-	jmp start
-
-animation_falsch:
-	mov output_x, #0FFh
-	lcall wait
-	mov output_x, #00h
-	lcall wait
-	mov output_x, #0FFh
-	lcall wait
-	mov output_x, #00h
-	lcall wait
-	jmp start
 
 animation_anfang:
 	mov output_x, #10101010b
